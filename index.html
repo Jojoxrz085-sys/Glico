@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GlicoControl AI</title>
+
+  <!-- Tags PWA para iOS / Safari -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Glico AI">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063822.png">
+  <meta name="theme-color" content="#00897B">
+
+  <!-- Fonte Google Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #00897B;
+      --primary-dark: #00695C;
+      --primary-light: #E0F2F1;
+      --bg: #F4F7F6;
+      --card-bg: #FFFFFF;
+      --text-main: #2D3748;
+      --text-muted: #718096;
+      
+      --status-hypo: #E53E3E;
+      --status-hypo-bg: #FFF5F5;
+      --status-target: #38A169;
+      --status-target-bg: #F0FFF4;
+      --status-hyper: #DD6B20;
+      --status-hyper-bg: #FFFAF0;
+
+      --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+    
+    body { 
+      background-color: var(--bg); 
+      color: var(--text-main); 
+      padding-bottom: 90px;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* App Header */
+    header { 
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+      color: white; 
+      padding: calc(env(safe-area-inset-top) + 16px) 16px 16px 16px; 
+      text-align: center; 
+      font-size: 1.25rem; 
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      box-shadow: var(--shadow-sm);
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+    }
+
+    .container { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+    /* Cards */
+    .card { 
+      background: var(--card-bg); 
+      padding: 20px; 
+      border-radius: var(--radius); 
+      box-shadow: var(--shadow-md); 
+      margin-bottom: 20px; 
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+
+    .card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .stat-box { 
+      background: var(--bg); 
+      padding: 12px 8px; 
+      border-radius: 12px; 
+      text-align: center;
+      border: 1px solid #E2E8F0;
+    }
+    .stat-val { font-size: 1.3rem; font-weight: 700; color: var(--primary-dark); }
+    .stat-lbl { font-size: 0.72rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+
+    /* Form Controls */
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
+    input, select { 
+      width: 100%; 
+      padding: 12px 14px; 
+      border: 1.5px solid #E2E8F0; 
+      border-radius: 10px; 
+      font-size: 0.95rem; 
+      background: #FAFAFA;
+      transition: all 0.2s ease;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+      background: #FFF;
+      box-shadow: 0 0 0 3px rgba(0,137,123,0.12);
+    }
+
+    .btn { 
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+      color: white; 
+      border: none; 
+      padding: 14px; 
+      width: 100%; 
+      border-radius: 12px; 
+      font-weight: 600; 
+      font-size: 0.95rem; 
+      cursor: pointer; 
+      box-shadow: 0 4px 10px rgba(0,137,123,0.25);
+      transition: transform 0.1s ease;
+    }
+    .btn:active { transform: scale(0.98); }
+
+    /* Log History */
+    .log-item { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 14px 0; 
+      border-bottom: 1px solid #EDF2F7; 
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-info strong { font-size: 1.05rem; color: var(--text-main); }
+    .log-info small { font-size: 0.78rem; color: var(--text-muted); display: block; margin-top: 2px; }
+
+    .badge { 
+      padding: 6px 12px; 
+      border-radius: 20px; 
+      font-weight: 600; 
+      font-size: 0.78rem; 
+    }
+    .badge.target { color: var(--status-target); background: var(--status-target-bg); }
+    .badge.hypo { color: var(--status-hypo); background: var(--status-hypo-bg); }
+    .badge.hyper { color: var(--status-hyper); background: var(--status-hyper-bg); }
+
+    /* --- POP-UP E CHAT DA IA --- */
+    #ai-widget-btn {
+      position: fixed; 
+      bottom: calc(env(safe-area-inset-bottom) + 24px); 
+      right: 20px; 
+      width: 60px; 
+      height: 60px;
+      border-radius: 30px; 
+      background: linear-gradient(135deg, #00BFA5, var(--primary-dark)); 
+      color: white;
+      border: none; 
+      box-shadow: var(--shadow-lg);
+      font-size: 26px; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      z-index: 1000;
+      transition: transform 0.2s ease;
+    }
+    #ai-widget-btn:active { transform: scale(0.92); }
+
+    #ai-chat-window {
+      position: fixed; 
+      bottom: calc(env(safe-area-inset-bottom) + 95px); 
+      right: 20px; 
+      width: calc(100% - 40px);
+      max-width: 360px; 
+      height: 480px;
+      background: var(--card-bg); 
+      border-radius: 20px; 
+      box-shadow: var(--shadow-lg);
+      display: none; 
+      flex-direction: column; 
+      overflow: hidden; 
+      z-index: 1000;
+      border: 1px solid #E2E8F0;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .ai-header { 
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+      color: white; 
+      padding: 14px 16px; 
+      font-weight: 600; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+    }
+    .ai-header-title { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+    .ai-header button { background: none; border: none; color: white; font-size: 20px; cursor: pointer; opacity: 0.8; }
+
+    .ai-messages { flex: 1; padding: 14px; overflow-y: auto; font-size: 0.88rem; display: flex; flex-direction: column; gap: 10px; }
+    .msg { padding: 10px 14px; border-radius: 16px; max-width: 85%; line-height: 1.4; }
+    .msg.ai { background: var(--primary-light); color: #004D40; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+    .ai-actions { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; background: #F8FAFC; border-top: 1px solid #EDF2F7; }
+    .chip { 
+      background: #FFF; 
+      border: 1px solid #CBD5E0; 
+      padding: 6px 12px; 
+      border-radius: 16px; 
+      font-size: 0.75rem; 
+      white-space: nowrap; 
+      cursor: pointer; 
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .ai-input-area { display: flex; padding: 10px; border-top: 1px solid #EDF2F7; background: #FFF; }
+    .ai-input-area input { flex: 1; margin-right: 8px; font-size: 0.88rem; padding: 10px; }
+    .ai-input-area button { 
+      background: var(--primary); 
+      color: white; 
+      border: none; 
+      padding: 0 16px; 
+      border-radius: 10px; 
+      font-weight: 600; 
+      cursor: pointer; 
+    }
+  </style>
+</head>
+<body>
+
+  <header>💉 GlicoControl AI</header>
+
+  <div class="container">
+    <!-- Card Dashboard -->
+    <div class="card">
+      <h3>📊 Resumo das Medições</h3>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-val" id="stat-avg">--</div>
+          <div class="stat-lbl">Média (mg/dL)</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-tir">--%</div>
+          <div class="stat-lbl">Tempo na Meta</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-count">0</div>
+          <div class="stat-lbl">Registros</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form de Registro -->
+    <div class="card">
+      <h3>➕ Novo Registro</h3>
+      <form id="glucose-form">
+        <div class="form-group">
+          <label for="glucose-input">Glicemia Atual (mg/dL)</label>
+          <input type="number" id="glucose-input" placeholder="Ex: 115" required pattern="[0-9]*" inputmode="numeric">
+        </div>
+        <div class="form-group">
+          <label for="context-select">Momento da Medição</label>
+          <select id="context-select">
+            <option value="Jejum">Jejum</option>
+            <option value="Pré-refeição">Pré-refeição</option>
+            <option value="Pós-refeição">Pós-refeição</option>
+            <option value="Antes de dormir">Antes de dormir</option>
+            <option value="Madrugada">Madrugada</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="carbs-input">Carboidratos (gramas) - Opcional</label>
+          <input type="number" id="carbs-input" placeholder="Ex: 35" pattern="[0-9]*" inputmode="numeric">
+        </div>
+        <button type="submit" class="btn">Salvar e Analisar com IA</button>
+      </form>
+    </div>
+
+    <!-- Histórico -->
+    <div class="card">
+      <h3>📋 Histórico Recente</h3>
+      <div id="logs-list"></div>
+    </div>
+  </div>
+
+  <!-- Botão Flutuante de IA -->
+  <button id="ai-widget-btn" onclick="toggleAIChat()" aria-label="Abrir assistente de IA">✨</button>
+
+  <!-- Pop-up de Chat com IA -->
+  <div id="ai-chat-window">
+    <div class="ai-header">
+      <div class="ai-header-title">
+        <span>🤖</span>
+        <span>Assistente Glico AI</span>
+      </div>
+      <button onclick="toggleAIChat()">✕</button>
+    </div>
+    
+    <div class="ai-messages" id="ai-messages-container"></div>
+    
+    <div class="ai-actions">
+      <div class="chip" onclick="askQuick('Como tratar hipoglicemia?')">🚨 Hipoglicemia</div>
+      <div class="chip" onclick="askQuick('Como calcular insulina?')">💉 Insulina</div>
+      <div class="chip" onclick="askQuick('Meta de glicemia')">🎯 Metas</div>
+    </div>
+    
+    <div class="ai-input-area">
+      <input type="text" id="ai-user-input" placeholder="Pergunte sobre sua saúde..." onkeypress="handleKeyPress(event)">
+      <button onclick="sendAIMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    let logs = JSON.parse(localStorage.getItem('glico_logs')) || [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderLogs();
+      updateStats();
+      triggerAIBootGreeting();
+    });
+
+    document.getElementById('glucose-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = parseInt(document.getElementById('glucose-input').value);
+      const context = document.getElementById('context-select').value;
+      const carbs = parseInt(document.getElementById('carbs-input').value) || 0;
+
+      const newLog = {
+        id: Date.now(),
+        val,
+        context,
+        carbs,
+        date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      logs.unshift(newLog);
+      localStorage.setItem('glico_logs', JSON.stringify(logs));
+
+      document.getElementById('glucose-form').reset();
+      renderLogs();
+      updateStats();
+
+      openAIChat();
+      addAIMessage(`Recebi seu registro de **${val} mg/dL** (${context}). ${getAIAnalysis(val)}`);
+    });
+
+    function getStatusClass(val) {
+      if (val < 70) return { class: 'hypo', label: 'Baixa' };
+      if (val > 180) return { class: 'hyper', label: 'Alta' };
+      return { class: 'target', label: 'Na Meta' };
+    }
+
+    function renderLogs() {
+      const container = document.getElementById('logs-list');
+      container.innerHTML = logs.map(l => {
+        const status = getStatusClass(l.val);
+        return `
+          <div class="log-item">
+            <div class="log-info">
+              <strong>${l.val} mg/dL</strong>
+              <small>${l.context} ${l.carbs ? '• ' + l.carbs + 'g carb' : ''} • ${l.date}</small>
+            </div>
+            <span class="badge ${status.class}">${status.label}</span>
+          </div>
+        `;
+      }).join('') || '<p style="color:#A0AEC0; text-align:center; padding: 10px 0;">Nenhum registro encontrado.</p>';
+    }
+
+    function updateStats() {
+      if (logs.length === 0) return;
+      const sum = logs.reduce((acc, l) => acc + l.val, 0);
+      const avg = Math.round(sum / logs.length);
+      const inRange = logs.filter(l => l.val >= 70 && l.val <= 180).length;
+      const tir = Math.round((inRange / logs.length) * 100);
+
+      document.getElementById('stat-avg').innerText = avg;
+      document.getElementById('stat-tir').innerText = `${tir}%`;
+      document.getElementById('stat-count').innerText = logs.length;
+    }
+
+    /* --- LÓGICA DO ASSISTENTE DE IA --- */
+    function toggleAIChat() {
+      const win = document.getElementById('ai-chat-window');
+      win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    function openAIChat() {
+      document.getElementById('ai-chat-window').style.display = 'flex';
+    }
+
+    function addAIMessage(text, isUser = false) {
+      const container = document.getElementById('ai-messages-container');
+      const msg = document.createElement('div');
+      msg.className = `msg ${isUser ? 'user' : 'ai'}`;
+      msg.innerText = text;
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function triggerAIBootGreeting() {
+      setTimeout(() => {
+        openAIChat();
+        if (logs.length > 0) {
+          const last = logs[0];
+          addAIMessage(`Olá! Sou seu assistente de glicemia. Seu último registro foi de **${last.val} mg/dL**. ${getAIAnalysis(last.val)}`);
+        } else {
+          addAIMessage('Olá! Seja bem-vindo ao GlicoControl AI. Registre sua primeira glicemia para ver minhas orientações personalizadas!');
+        }
+      }, 600);
+    }
+
+    function getAIAnalysis(val) {
+      if (val < 70) return '🚨 Atenção: Você está em hipoglicemia. Consuma 15g de carboidrato rápido (ex: 1 colher de açúcar ou meio copo de suco) e meça novamente em 15 min.';
+      if (val > 180) return '⚠️ Sua glicemia está acima da meta. Beba água e verifique se há necessidade de correção com insulina conforme orientação médica.';
+      return '✅ Excelente resultado! Você está dentro da meta glicêmica ideal (70 - 180 mg/dL).';
+    }
+
+    function sendAIMessage() {
+      const input = document.getElementById('ai-user-input');
+      const query = input.value.trim();
+      if (!query) return;
+
+      addAIMessage(query, true);
+      input.value = '';
+
+      setTimeout(() => {
+        respondAI(query);
+      }, 500);
+    }
+
+    function askQuick(text) {
+      addAIMessage(text, true);
+      setTimeout(() => respondAI(text), 400);
+    }
+
+    function respondAI(query) {
+      const q = query.toLowerCase();
+      if (q.includes('hipoglicemia') || q.includes('baixa')) {
+        addAIMessage('Na hipoglicemia (<70 mg/dL): Use a regra dos 15. Consuma 15g de carboidrato rápido, aguarde 15 minutos e meça de novo.');
+      } else if (q.includes('insulina') || q.includes('calcular')) {
+        addAIMessage('Para calcular a dose de insulina, considere o total de carboidratos ingeridos (Fator Carboidrato) mais a correção para ajustar glicemias acima da meta.');
+      } else if (q.includes('meta')) {
+        addAIMessage('A meta padrão para adultos é manter a glicemia entre 70 e 180 mg/dL na maior parte do tempo (Tempo na Meta ideal > 70%).');
+      } else {
+        addAIMessage('Estou aqui para ajudar com o acompanhamento da sua glicemia. Sempre consulte seu médico para ajustar prescrições e medicações!');
+      }
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') sendAIMessage();
+    }
+  </script>
+</body>
+</html>

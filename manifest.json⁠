@@ -1,0 +1,21 @@
+{
+  "short_name": "Glico AI",
+  "name": "GlicoControl AI - Diário de Glicemia",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3063/3063822.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3063/3063822.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "index.html",
+  "background_color": "#00897B",
+  "theme_color": "#00897B",
+  "display": "standalone",
+  "orientation": "portrait"
+}
