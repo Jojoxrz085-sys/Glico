@@ -1,0 +1,15 @@
+{
+  "short_name": "Glico AI",
+  "name": "GlicoControl AI",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2864/2864388.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "display": "standalone"
+}
