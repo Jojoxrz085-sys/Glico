@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GlicoControl AI</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Glico AI">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2864/2864388.png">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-align: center;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        input, select, textarea, button {
+            font-size: 1rem;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            outline: none;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary-color);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .bg-normal { background-color: #198754; }
+        .bg-high { background-color: #dc3545; }
+        .bg-low { background-color: #ffc107; color: black; }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        /* Chat Widget */
+        .chat-box {
+            display: flex;
+            flex-direction: column;
+            height: 300px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
+            margin-bottom: 10px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .message.user {
+            background-color: var(--primary-color);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.ai {
+            background-color: #e9ecef;
+            color: var(--text-color);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+        }
+
+        .api-key-section {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🩸 GlicoControl AI</h1>
+
+    <!-- Configuração de Chave de API da IA -->
+    <div class="card api-key-section">
+        <label for="apiKeyInput">Chave da API Gemini (opcional para IA real):</label>
+        <input type="password" id="apiKeyInput" placeholder="Cole sua chave da Google AI Studio..." onchange="saveApiKey()">
+    </div>
+
+    <!-- Registo de Glicemia -->
+    <div class="card">
+        <h3>Novo Registo</h3>
+        <div class="form-group">
+            <label for="glucoseInput">Glicemia (mg/dL)</label>
+            <input type="number" id="glucoseInput" placeholder="Ex: 110" pattern="\d*">
+        </div>
+        <div class="form-group">
+            <label for="contextSelect">Momento</label>
+            <select id="contextSelect">
+                <option value="Jejum">Jejum</option>
+                <option value="Pós-Prandial">Pós-Prandial (após comer)</option>
+                <option value="Antes de Dormir">Antes de Dormir</option>
+                <option value="Outro">Outro</option>
+            </select>
+        </div>
+        <button onclick="addEntry()">Salvar e Analisar com IA</button>
+    </div>
+
+    <!-- Histórico -->
+    <div class="card">
+        <h3>Últimos Registos</h3>
+        <ul id="historyList" class="history-list"></ul>
+    </div>
+
+    <!-- Assistente IA Conversacional -->
+    <div class="card chat-box">
+        <h3>🤖 Assistente Virtual de Saúde</h3>
+        <div id="chatMessages" class="chat-messages">
+            <div class="message ai">Olá! Registe o seu valor de glicemia acima ou faça-me qualquer pergunta para obter uma análise sobre o seu estado de saúde.</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Faça uma pergunta à IA..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let entries = JSON.parse(localStorage.getItem('glico_entries')) || [];
+    let apiKey = localStorage.getItem('gemini_api_key') || '';
+
+    document.getElementById('apiKeyInput').value = apiKey;
+
+    function saveApiKey() {
+        apiKey = document.getElementById('apiKeyInput').value.trim();
+        localStorage.setItem('gemini_api_key', apiKey);
+    }
+
+    function renderHistory() {
+        const list = document.getElementById('historyList');
+        list.innerHTML = '';
+        entries.slice().reverse().forEach(entry => {
+            let badgeClass = 'bg-normal';
+            if (entry.value < 70) badgeClass = 'bg-low';
+            else if ((entry.context === 'Jejum' && entry.value > 100) || entry.value > 140) badgeClass = 'bg-high';
+
+            const li = document.createElement('li');
+            li.className = 'history-item';
+            li.innerHTML = `
+                <div>
+                    <strong>${entry.value} mg/dL</strong> <small>(${entry.context})</small><br>
+                    <small style="color: #6c757d;">${entry.date}</small>
+                </div>
+                <span class="badge ${badgeClass}">${entry.status}</span>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function addEntry() {
+        const valueInput = document.getElementById('glucoseInput');
+        const contextSelect = document.getElementById('contextSelect');
+        const val = parseInt(valueInput.value);
+
+        if (!val) return alert('Por favor, introduza um valor válido de glicemia.');
+
+        let status = 'Normal';
+        if (val < 70) status = 'Hipoglicemia';
+        else if ((contextSelect.value === 'Jejum' && val > 100) || val > 140) status = 'Hiperglicemia';
+
+        const newEntry = {
+            value: val,
+            context: contextSelect.value,
+            status: status,
+            date: new Date().toLocaleString('pt-PT')
+        };
+
+        entries.push(newEntry);
+        localStorage.setItem('glico_entries', JSON.stringify(entries));
+        renderHistory();
+
+        valueInput.value = '';
+
+        // Dispara a análise automática da IA
+        const prompt = `Registei um valor de glicemia de ${val} mg/dL em situação de ${contextSelect.value}. O status calculado foi ${status}. Oq pode estar acontecendo comigo e indicando recomendações médicas?`;
+        appendMessage('user', `Registo: ${val} mg/dL (${contextSelect.value})`);
+        getAIResponse(prompt);
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        appendMessage('user', text);
+        input.value = '';
+        getAIResponse(text);
+    }
+
+    function appendMessage(sender, text) {
+        const chat = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${sender}`;
+        msgDiv.innerText = text;
+        chat.appendChild(msgDiv);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function getAIResponse(userPrompt) {
+        appendMessage('ai', 'A pensar...');
+        const chat = document.getElementById('chatMessages');
+
+        const systemInstructions = `Você é um assistente de saúde especializado em diabetes e glicemia.
+Sua função é fornecer respostas conversacionais, úteis e variadas como uma IA médica educativa.
+REQUISITO OBRIGATÓRIO: Em todas as respostas sobre análises de glicemia, sintomas ou dúvidas de saúde, você DEVE explicar as causas prováveis e incluir explicitamente a frase: "Oq pode estar acontecendo comigo e indicando recomendações médicas", seguida de orientações para que o utilizador procure um médico especializado para avaliação formal.`;
+
+        if (apiKey) {
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [
+                            { role: 'user', parts: [{ text: `${systemInstructions}\n\nPergunta do utilizador: ${userPrompt}` }] }
+                        ]
+                    })
+                });
+                const data = await response.json();
+                chat.removeChild(chat.lastChild); // Remove mensagem de carregamento
+
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    appendMessage('ai', data.candidates[0].content.parts[0].text);
+                } else {
+                    appendMessage('ai', 'Erro ao obter resposta da IA. Verifique a sua chave de API.');
+                }
+            } catch (err) {
+                chat.removeChild(chat.lastChild);
+                appendMessage('ai', 'Falha na ligação com a IA. A usar resposta de apoio offline.');
+                generateFallbackResponse(userPrompt);
+            }
+        } else {
+            chat.removeChild(chat.lastChild);
+            generateFallbackResponse(userPrompt);
+        }
+    }
+
+    function generateFallbackResponse(prompt) {
+        let reply = "Com base no que partilhou, variações na glicemia podem decorrer da alimentação recente, do nível de atividade física ou da medicação.\n\nOq pode estar acontecendo comigo e indicando recomendações médicas:\nRecomenda-se manter o registo diário atualizado e consultar um endocrinologista ou médico de família para ajustar o tratamento com segurança.";
+        appendMessage('ai', reply);
+    }
+
+    renderHistory();
+</script>
+</body>
+</html>
